@@ -13,6 +13,10 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         self.resize_table_headers()
 
     def resize_table_headers(self):
+        """
+        Resizes the table headers to fit the width of the table.
+        QtDesigner does not do it automatically
+        """
         input_table_headers = self.inputTable.horizontalHeader()
         output_table_headers = self.outputTable.horizontalHeader()
         forward_table_headers = self.forwardTable.horizontalHeader()
