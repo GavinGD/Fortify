@@ -1,7 +1,7 @@
 import sys, qdarktheme
 from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QMainWindow, QHeaderView
-from fortifyUi import Ui_MainWindow
+from fortifyUI import Ui_MainWindow
 from API import *
 
 
@@ -15,9 +15,30 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         self.resize_table_headers()
         self.setup_chain_policies()
 
-        # Connect the Dark and Light mode buttons to set_themee
+
+        # Connect the Dark and Light mode buttons to set_theme
         self.actionDark_Mode.triggered.connect(lambda: self.set_theme(self.actionDark_Mode.text()))
         self.actionLight_Mode.triggered.connect(lambda: self.set_theme(self.actionLight_Mode.text()))
+
+        rules = [{'target': 'ACCEPT', 'protocol': 'tcp', 'source': '-', 'destination': '-', 'sport': '-',
+                  'dport': '22', 'state': 'NEW,ESTABLISHED'},
+
+                 ]
+
+        row = 0
+        self.resize_table_headers()
+
+        self.inputTable.setRowCount(len(rules))
+        for rule in rules:
+            self.inputTable.setItem(row, 0, QtWidgets.QTableWidgetItem(rule['target']))
+            self.inputTable.setItem(row, 1, QtWidgets.QTableWidgetItem(rule['protocol']))
+            self.inputTable.setItem(row, 2, QtWidgets.QTableWidgetItem(rule['source']))
+            self.inputTable.setItem(row, 3, QtWidgets.QTableWidgetItem(rule['destination']))
+            self.inputTable.setItem(row, 4, QtWidgets.QTableWidgetItem(rule['sport']))
+            self.inputTable.setItem(row, 5, QtWidgets.QTableWidgetItem(rule['dport']))
+            self.inputTable.setItem(row, 6, QtWidgets.QTableWidgetItem(rule['state']))
+            row += 1
+
 
     def resize_table_headers(self):
         """

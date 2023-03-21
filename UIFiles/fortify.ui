@@ -102,6 +102,9 @@
         </item>
         <item>
          <widget class="QTableWidget" name="inputTable">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
            <bool>false</bool>
           </attribute>
@@ -189,6 +192,9 @@
         </item>
         <item>
          <widget class="QTableWidget" name="forwardTable">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <column>
            <property name="text">
             <string>Target</string>
@@ -270,6 +276,9 @@
         </item>
         <item>
          <widget class="QTableWidget" name="outputTable">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <column>
            <property name="text">
             <string>Target</string>
