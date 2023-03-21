@@ -67,7 +67,7 @@
           <item>
            <widget class="QLabel" name="inputLbl">
             <property name="text">
-             <string>Chain INPUT</string>
+             <string>INPUT</string>
             </property>
            </widget>
           </item>
@@ -154,7 +154,7 @@
           <item>
            <widget class="QLabel" name="forwardLbl">
             <property name="text">
-             <string>Chain FORWARD</string>
+             <string>FORWARD</string>
             </property>
            </widget>
           </item>
@@ -235,7 +235,7 @@
           <item>
            <widget class="QLabel" name="outputLbl">
             <property name="text">
-             <string>Chain OUTPUT</string>
+             <string>OUTPUT</string>
             </property>
            </widget>
           </item>

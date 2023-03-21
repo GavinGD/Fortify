@@ -2,6 +2,7 @@ import sys, qdarktheme
 from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QMainWindow, QHeaderView
 from fortifyUi import Ui_MainWindow
+from API import *
 
 
 class FortifyLogic(QMainWindow, Ui_MainWindow):
@@ -10,7 +11,11 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         super(FortifyLogic, self).__init__()
         self.setupUi(self)
 
+        # Resize the tables headers and set the chains policies
         self.resize_table_headers()
+        self.setup_chain_policies()
+
+        # Connect the Dark and Light mode buttons to set_themee
         self.actionDark_Mode.triggered.connect(lambda: self.set_theme(self.actionDark_Mode.text()))
         self.actionLight_Mode.triggered.connect(lambda: self.set_theme(self.actionLight_Mode.text()))
 
@@ -26,7 +31,37 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         output_table_headers.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         forward_table_headers.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
+    def setup_chain_policies(self):
+        """
+        Sets all the chains policies.
+        """
+        self.set_chain_policy(self.inputLbl.text(), self.inputPolicyLbl)
+        self.set_chain_policy(self.forwardLbl.text(), self.forwardPolicyLbl)
+        self.set_chain_policy(self.outputLbl.text(), self.outputPolicyLbl)
+
+    def set_chain_policy(self, chain_label, widget):
+        """
+        Sets a chain policy.
+        :param chain_label: chain to get policy
+        :param widget: widget to set policy
+        """
+        policy = get_chain_policy(chain_label)
+        self.set_text(f'({policy})', widget)
+
+    def set_text(self, text, widget):
+        """
+        Sets the text of a widget.
+        :param text: text to set
+        :param widget: widget to set text
+        """
+        widget.setText(str(text))
+        widget.adjustSize()
+
     def set_theme(self, mode):
+        """
+        Sets the theme of the app.
+        :param mode: Dark Mode or Light Mode
+        """
         if mode == 'Dark Mode':
             qdarktheme.setup_theme('dark')
         elif mode == 'Light Mode':
@@ -35,7 +70,7 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    qdarktheme.setup_theme()
+    qdarktheme.setup_theme('auto')
     fortifyLogic = FortifyLogic(app)
     fortifyLogic.show()
     sys.exit(app.exec())
