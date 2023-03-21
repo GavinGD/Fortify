@@ -2,7 +2,7 @@ import subprocess
 import re
 
 
-def get_chain_policy(chain):
+def ui_chain_policy(chain):
     """
     Returns the policy of the specified chain in iptables.
     :param chain: name of chain
@@ -17,7 +17,32 @@ def get_chain_policy(chain):
                 return line.split()[3]
 
 
-def get_iptables_rules(chain):
+def ui_chain_rules(chain):
+    """
+    Returns the rules of a chain. Each rule is a dictionary with key value pairs mapped
+    to the ui table columns.
+    :param chain: chain to get rules
+    :return: list of dictionaries
+    """
+    ui_rules = []
+    chain_rules = __get_chain_rules(chain)
+
+    for rule in chain_rules:
+
+        rule_dict = {}
+        __extract_rule_field(rule, rule_dict, 'protocol', r'-p\b')
+        __extract_rule_field(rule, rule_dict, 'source', r'-s\b')
+        __extract_rule_field(rule, rule_dict, 'destination', r'-d\b')
+        __extract_rule_field(rule, rule_dict, 'sport', r'--sport\b')
+        __extract_rule_field(rule, rule_dict, 'dport', r'--dport\b')
+        __extract_rule_field(rule, rule_dict, 'state', r'--state\b')
+        __extract_rule_field(rule, rule_dict, 'target', r'-j\b')
+        ui_rules.append(rule_dict)
+
+    return ui_rules
+
+
+def __get_chain_rules(chain):
     """
     Gets rules from a chain in iptables and stores each rule in a list.
     :param chain: name of the chain to get rules from
@@ -73,23 +98,3 @@ def __run_command(command):
     output = process.communicate()[0].decode()
 
     return output
-
-
-rules = get_iptables_rules("INPUT")
-rules2 = []
-
-for rule in rules:
-    rule_dict = {}
-    __extract_rule_field(rule, rule_dict, 'protocol', r'-p\b')
-    __extract_rule_field(rule, rule_dict, 'source', r'-s\b')
-    __extract_rule_field(rule, rule_dict, 'destination', r'-d\b')
-    __extract_rule_field(rule, rule_dict, 'sport', r'--sport\b')
-    __extract_rule_field(rule, rule_dict, 'dport', r'--dport\b')
-    __extract_rule_field(rule, rule_dict, 'state', r'--state\b')
-    __extract_rule_field(rule, rule_dict, 'target', r'-j\b')
-
-    rules2.append(rule_dict)
-
-for rule in rules2:
-    print(rule)
-
