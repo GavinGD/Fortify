@@ -16,13 +16,24 @@ class PopupWindow(QDialog):
         # i.e. self.submitBtn = QPushButton
         # Makes it so other classes can modify the widgets
 
+        self.dictionary = {"-A": None,
+                      "-p": None,
+                      "-s": None,
+                      "-d": None,
+                      "--sport": None,
+                      "--dport": None,
+                      "--state": None,
+                      "j": None}
+
         # Creating layout and labels (Horizontal and Vertical)
         layout = QHBoxLayout()
         layout2 = QVBoxLayout()
 
         # port validator
-        onlyInt = QIntValidator()
-        onlyInt.setRange(0, 65535)
+        port_reg = r"^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-5]{2}[0-3][0-5])$"
+        port_validator = QRegularExpressionValidator(self)
+        port_validator.setRegularExpression(QRegularExpression(port_reg))
+
 
         # ip validator
         ip_reg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
@@ -63,22 +74,31 @@ class PopupWindow(QDialog):
         # source port field
         self.sPort = QLineEdit()
         self.sPort.setPlaceholderText("src Port")
-        self.sPort.setValidator(onlyInt)
+        self.sPort.setValidator(port_validator)
         self.sPort.setFixedWidth(80)
 
         # destination port field
         self.dPort = QLineEdit()
         self.dPort.setPlaceholderText("dst Port")
-        self.dPort.setValidator(onlyInt)
+        self.dPort.setValidator(port_validator)
         self.dPort.setFixedWidth(80)
 
         # state dropdown
         self.state = QComboBox()
+        self.state.setPlaceholderText("state")
         self.state.addItem("ESTABLISHED")
         self.state.addItem("RELATED")
         self.state.addItem("NEW")
         self.state.addItem("INVALID")
         self.state.setFixedWidth(140)
+
+        # target column
+        self.target = QComboBox()
+        self.target.setPlaceholderText("target")
+        self.target.addItem("ACCEPT")
+        self.target.addItem("DROP")
+        self.target.addItem("REJECT")
+        self.target.setFixedWidth(100)
 
         # submit button
         self.submit = QPushButton("submit")
@@ -94,6 +114,7 @@ class PopupWindow(QDialog):
         layout.addWidget(self.sPort)
         layout.addWidget(self.dPort)
         layout.addWidget(self.state)
+        layout.addWidget(self.target)
         layout.addWidget(self.error)
 
 
@@ -117,21 +138,38 @@ class PopupWindow(QDialog):
 
     def get_value(self):
         val_chain = self.chain.currentText()
-        val_protocol = self.protocol.currentText()
-        val_source = self.source.text()
-        val_dest = self.dest.text()
-        val_sPort = self.sPort.text()
-        val_dPort = self.dPort.text()
-        val_state = self.state.currentText()
+        self.dictionary["-A"] = val_chain
 
-        # TODO: - if self.validate_ip(val_source) == "INVALID IP" display error message => not close box
-        #       -                                 != "INVALID IP" save in dictionary
-        #       - if protocol, src(ip, port), dst(ip, port), has none value => set to any
-        print(val_chain)
-        print(val_protocol)
-        print(val_source)
-        print(val_dest)
-        print(val_sPort)
-        print(val_dPort)
-        print(val_state)
+        val_protocol = self.protocol.currentText()
+        if len(val_protocol) == 0:
+            val_protocol = "any"
+        self.dictionary["-p"] = val_protocol
+
+        val_source = self.source.text()
+        if len(val_source) == 0:
+            val_source = "any"
+        self.dictionary["-s"] = val_source
+
+        val_dest = self.dest.text()
+        if len(val_dest) == 0:
+            val_dest = "any"
+        self.dictionary["-d"] = val_dest
+
+        val_sPort = self.sPort.text()
+        if len(val_sPort) == 0:
+            val_sPort = "any"
+        self.dictionary["--sport"] = val_sPort
+
+        val_dPort = self.dPort.text()
+        if len(val_dPort) == 0:
+            val_dPort = "any"
+        self.dictionary["--dport"] = val_dPort
+
+        val_state = self.state.currentText()
+        self.dictionary["--state"] = val_state
+
+        val_target = self.target.currentText()
+        self.dictionary["-j"] = val_target
+
+        print(self.dictionary)
 
