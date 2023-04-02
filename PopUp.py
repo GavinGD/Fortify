@@ -138,8 +138,9 @@ class PopupWindow(QDialog):
 
         val_protocol = self.protocol.currentText()
         if len(val_protocol) == 0:
-            val_protocol = None
-        self.dictionary["-p"] = val_protocol
+            QMessageBox.warning(self, "Warning", "One of the protocol must be selected")
+        else:
+            self.dictionary["-p"] = val_protocol
 
         val_source = self.source.text()
         if len(val_source) == 0:
