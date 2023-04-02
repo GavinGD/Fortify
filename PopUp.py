@@ -23,7 +23,7 @@ class PopupWindow(QDialog):
                       "--sport": None,
                       "--dport": None,
                       "--state": None,
-                      "j": None}
+                      "-j": None}
 
         # Creating layout and labels (Horizontal and Vertical)
         layout = QHBoxLayout()
@@ -141,28 +141,18 @@ class PopupWindow(QDialog):
         self.dictionary["-A"] = val_chain
 
         val_protocol = self.protocol.currentText()
-        if len(val_protocol) == 0:
-            val_protocol = "any"
         self.dictionary["-p"] = val_protocol
 
         val_source = self.source.text()
-        if len(val_source) == 0:
-            val_source = "any"
         self.dictionary["-s"] = val_source
 
         val_dest = self.dest.text()
-        if len(val_dest) == 0:
-            val_dest = "any"
         self.dictionary["-d"] = val_dest
 
         val_sPort = self.sPort.text()
-        if len(val_sPort) == 0:
-            val_sPort = "any"
         self.dictionary["--sport"] = val_sPort
 
         val_dPort = self.dPort.text()
-        if len(val_dPort) == 0:
-            val_dPort = "any"
         self.dictionary["--dport"] = val_dPort
 
         val_state = self.state.currentText()
