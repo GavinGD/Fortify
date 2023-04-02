@@ -16,10 +16,6 @@ class AddRulePopup(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Add Rule")
         self.setGeometry(parent.geometry().x(), parent.geometry().y(), 800, 150)
-
-        # Should probably make all layouts, labels widgets class variables
-        # i.e. self.submitBtn = QPushButton
-        # Makes it so other classes can modify the widgets
         self.rule = {"-A": None,
                      "-p": None,
                      "-s": None,
@@ -42,8 +38,6 @@ class AddRulePopup(QDialog):
         ip_reg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
         ip_validator = QRegularExpressionValidator(self)
         ip_validator.setRegularExpression(QRegularExpression(ip_reg))
-
-        self.error = QLabel("")
 
         # chain dropdown
         self.chain = QComboBox()
@@ -115,39 +109,26 @@ class AddRulePopup(QDialog):
         self.layout.addWidget(self.dPort)
         self.layout.addWidget(self.state)
         self.layout.addWidget(self.target)
-        self.layout.addWidget(self.error)
         # Add input widget and button to vertical layout
         self.layout2.addLayout(self.layout)
         self.layout2.addWidget(self.submit, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.setLayout(self.layout2)
 
-    def set_text(self, text, widget):
-        """
-        Sets the text of a widget and readjusts label to fit text.
-        :param text: text to set
-        :param widget: widget to set text
-        """
-        widget.setText(str(text))
-        widget.adjustSize()
-
     def get_value(self):
 
         combo_box_widgets = self.findChildren(QComboBox)
 
         if self.check_combo_value(combo_box_widgets):
-
             input_widgets = self.findChildren((QComboBox, QLineEdit))
             self.create_rule(input_widgets)
-
+            print(self.rule)
         # self.submit_rule()
 
     def check_combo_value(self, combo_boxes):
 
         for combo in combo_boxes:
-
             if combo.placeholderText() != 'protocol':
-
                 if len(combo.currentText()) == 0:
                     QMessageBox.warning(self, "Warning", f"One of the {combo.placeholderText()} must be selected")
                     return False
@@ -160,12 +141,10 @@ class AddRulePopup(QDialog):
             key = str(widget.objectName())
 
             if type(widget) == PyQt6.QtWidgets.QComboBox:
-
                 if widget.currentText() != '':
                     self.rule[key] = widget.currentText()
 
             elif type(widget) == PyQt6.QtWidgets.QLineEdit:
-
                 if widget.text() != '':
                     self.rule[key] = widget.text()
 
