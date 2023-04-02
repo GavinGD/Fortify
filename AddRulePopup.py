@@ -1,7 +1,9 @@
 import ipaddress
+
+import PyQt6
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
-    QComboBox, QLineEdit, QMessageBox
+    QComboBox, QLineEdit, QMessageBox, QWidget
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtCore import Qt, QRegularExpression
 import subprocess
@@ -9,7 +11,7 @@ import API
 
 
 # Can change the filename/class name to something that shows this is adding a rule
-class PopupWindow(QDialog):
+class AddRulePopup(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Add Rule")
@@ -18,18 +20,18 @@ class PopupWindow(QDialog):
         # Should probably make all layouts, labels widgets class variables
         # i.e. self.submitBtn = QPushButton
         # Makes it so other classes can modify the widgets
-        self.dictionary = {"-A": None,
-                           "-p": None,
-                           "-s": None,
-                           "-d": None,
-                           "--sport": None,
-                           "--dport": None,
-                           "-m state --state": None,
-                           "-j": None}
+        self.rule = {"-A": None,
+                     "-p": None,
+                     "-s": None,
+                     "-d": None,
+                     "--sport": None,
+                     "--dport": None,
+                     "-m state --state": None,
+                     "-j": None}
 
         # Creating layout and labels (Horizontal and Vertical)
-        layout = QHBoxLayout()
-        layout2 = QVBoxLayout()
+        self.layout = QHBoxLayout()
+        self.layout2 = QVBoxLayout()
 
         # port validator
         port_reg = r"^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-5]{2}[0-3][0-5])$"
@@ -45,6 +47,7 @@ class PopupWindow(QDialog):
 
         # chain dropdown
         self.chain = QComboBox()
+        self.chain.setObjectName('-A')
         self.chain.setPlaceholderText("chain")
         self.chain.addItems(["INPUT", "OUTPUT", "FORWARD"])
         self.chain.setValidator(QIntValidator(0, self.chain.count() - 1, self))
@@ -52,42 +55,48 @@ class PopupWindow(QDialog):
 
         # protocol dropdown
         self.protocol = QComboBox()
+        self.protocol.setObjectName('-p')
         self.protocol.setPlaceholderText("protocol")
         self.protocol.addItems(["tcp", "udp", "icmp"])
         self.protocol.setFixedWidth(100)
 
         # source ip field
         self.source = QLineEdit()
+        self.source.setObjectName('-s')
         self.source.setPlaceholderText("src IP")
         self.source.setFixedWidth(120)
         self.source.setValidator(ip_validator)
 
         # destination ip field
         self.dest = QLineEdit()
+        self.dest.setObjectName('-d')
         self.dest.setPlaceholderText("dst IP")
         self.dest.setFixedWidth(120)
         self.dest.setValidator(ip_validator)
-
         # source port field
         self.sPort = QLineEdit()
+        self.sPort.setObjectName('--sport')
         self.sPort.setPlaceholderText("src Port")
         self.sPort.setValidator(port_validator)
         self.sPort.setFixedWidth(80)
 
         # destination port field
         self.dPort = QLineEdit()
+        self.dPort.setObjectName('--dport')
         self.dPort.setPlaceholderText("dst Port")
         self.dPort.setValidator(port_validator)
         self.dPort.setFixedWidth(80)
 
         # state dropdown
         self.state = QComboBox()
+        self.state.setObjectName('-m state --state')
         self.state.setPlaceholderText("state")
         self.state.addItems(["ESTABLISHED", "RELATED", "NEW", "INVALID"])
         self.state.setFixedWidth(140)
 
         # target column
         self.target = QComboBox()
+        self.target.setObjectName('-j')
         self.target.setPlaceholderText("target")
         self.target.addItems(["ACCEPT", "DROP", "REJECT"])
         self.target.setFixedWidth(100)
@@ -98,24 +107,20 @@ class PopupWindow(QDialog):
         self.submit.clicked.connect(self.get_value)
 
         # Adding input widgets to horizontal layout
-        layout.addWidget(self.chain)
-        layout.addWidget(self.protocol)
-        layout.addWidget(self.source)
-        layout.addWidget(self.dest)
-        layout.addWidget(self.sPort)
-        layout.addWidget(self.dPort)
-        layout.addWidget(self.state)
-        layout.addWidget(self.target)
-        layout.addWidget(self.error)
-
+        self.layout.addWidget(self.chain)
+        self.layout.addWidget(self.protocol)
+        self.layout.addWidget(self.source)
+        self.layout.addWidget(self.dest)
+        self.layout.addWidget(self.sPort)
+        self.layout.addWidget(self.dPort)
+        self.layout.addWidget(self.state)
+        self.layout.addWidget(self.target)
+        self.layout.addWidget(self.error)
         # Add input widget and button to vertical layout
-        layout2.addLayout(layout)
-        layout2.addWidget(self.submit, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.layout2.addLayout(self.layout)
+        self.layout2.addWidget(self.submit, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.setLayout(layout2)
-
-    def show_error(self):
-        self.set_text('Validation Error', self.error)
+        self.setLayout(self.layout2)
 
     def set_text(self, text, widget):
         """
@@ -127,75 +132,51 @@ class PopupWindow(QDialog):
         widget.adjustSize()
 
     def get_value(self):
-        val_chain = self.chain.currentText()
-        if len(val_chain) == 0:
-            QMessageBox.warning(self, "Warning", "One of the chain must be selected")
-        else:
-            self.dictionary["-A"] = val_chain
 
-        # Protocol
-        val_protocol = self.protocol.currentText().strip()
-        self.dictionary["-p"] = val_protocol
+        combo_box_widgets = self.findChildren(QComboBox)
 
-        # Source IP
-        try:
-            src_ip = self.source.text()
-            if len(src_ip) == 0:
-                self.dictionary["-s"] = None
-            else:
-                source_ip = ipaddress.ip_address(src_ip)
-                self.dictionary["-s"] = source_ip
-        except ValueError:
-            self.dictionary["-s"] = "ERROR"
-            QMessageBox.warning(self, "Warning", "Invalid Source IP Address!")
+        if self.check_combo_value(combo_box_widgets):
 
-        # Destination IP
-        try:
-            dest_ip = self.dest.text()
-            if len(dest_ip) == 0:
-                self.dictionary["-d"] = None
-            else:
-                dest_ip = ipaddress.ip_address(dest_ip)
-                self.dictionary["-d"] = dest_ip
-        except ValueError:
-            self.dictionary["-d"] = "ERROR"
-            QMessageBox.warning(self, "Warning", "Invalid Destination IP Address!")
+            input_widgets = self.findChildren((QComboBox, QLineEdit))
+            self.create_rule(input_widgets)
 
-        # Source Port
-        val_sPort = self.sPort.text()
-        if len(val_sPort) == 0 or val_protocol == "icmp":
-            val_sPort = None
-        self.dictionary["--sport"] = val_sPort
+        # self.submit_rule()
 
-        # Destination Port
-        val_dPort = self.dPort.text()
-        if len(val_dPort) == 0 or val_protocol == "icmp":
-            val_dPort = None
-        self.dictionary["--dport"] = val_dPort
+    def check_combo_value(self, combo_boxes):
 
-        # State
-        val_state = self.state.currentText()
-        if len(val_state) == 0:
-            QMessageBox.warning(self, "Warning", "One of the state must be selected")
-        else:
-            self.dictionary["-m state --state"] = val_state
+        for combo in combo_boxes:
 
-        # Target
-        val_target = self.target.currentText()
-        if len(val_target) == 0:
-            QMessageBox.warning(self, "Warning", "One of the target must be selected")
-        else:
-            self.dictionary["-j"] = val_target
+            if combo.placeholderText() != 'protocol':
 
-        self.submit_rule()
+                if len(combo.currentText()) == 0:
+                    QMessageBox.warning(self, "Warning", f"One of the {combo.placeholderText()} must be selected")
+                    return False
+
+        return True
+
+    def create_rule(self, input_widgets):
+
+        for widget in input_widgets:
+            key = str(widget.objectName())
+
+            if type(widget) == PyQt6.QtWidgets.QComboBox:
+
+                if widget.currentText() != '':
+                    self.rule[key] = widget.currentText()
+
+            elif type(widget) == PyQt6.QtWidgets.QLineEdit:
+
+                if widget.text() != '':
+                    self.rule[key] = widget.text()
+
 
     def submit_rule(self):
         rule = "iptables "
 
-        if (self.dictionary["-A"] and self.dictionary["-m state --state"] and self.dictionary["-j"]) is not None \
-                and (self.dictionary["-d"] and self.dictionary["-s"]) is not "ERROR":
+        if (self.rule["-A"] and self.rule["-m state --state"] and self.rule["-j"]) is not None \
+                and (self.rule["-d"] and self.rule["-s"]) is not "ERROR":
 
-            for flag, val in self.dictionary.items():
+            for flag, val in self.rule.items():
                 if val is not None:
                     rule += f"{flag} {val} "
 
