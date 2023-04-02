@@ -12,11 +12,12 @@ class PopupWindow(QDialog):
         # i.e. self.submitBtn = QPushButton
         # Makes it so other classes can modify the widgets
 
-        # Creating layout and labels
+        # Creating layout and labels (Horizontal and Vertical)
         layout = QHBoxLayout()
         layout2 = QVBoxLayout()
         self.error = QLabel("")
 
+        # chain dropdown
         chain = QComboBox()
         chain.setPlaceholderText("chain")
         chain.addItem("INPUT")
@@ -24,6 +25,7 @@ class PopupWindow(QDialog):
         chain.addItem("FORWARD")
         chain.setFixedWidth(100)
 
+        # protocol dropdown
         protocol = QComboBox()
         protocol.setPlaceholderText("protocol")
         protocol.addItem("tcp")
@@ -31,22 +33,27 @@ class PopupWindow(QDialog):
         protocol.addItem("icmp")
         protocol.setFixedWidth(100)
 
+        # source ip field
         source = QLineEdit()
         source.setPlaceholderText("src IP")
         source.setFixedWidth(120)
 
+        # destination ip field
         dest = QLineEdit()
         dest.setPlaceholderText("dst IP")
         dest.setFixedWidth(120)
 
+        # source port field
         sPort = QLineEdit()
         sPort.setPlaceholderText("src Port")
         sPort.setFixedWidth(80)
 
+        # destination port field
         dPort = QLineEdit()
         dPort.setPlaceholderText("dst Port")
         dPort.setFixedWidth(80)
 
+        # state dropdown
         state = QComboBox()
         state.addItem("ESTABLISHED")
         state.addItem("RELATED")
@@ -54,10 +61,11 @@ class PopupWindow(QDialog):
         state.addItem("INVALID")
         state.setFixedWidth(140)
 
+        # submit button
         button = QPushButton("submit")
         button.setFixedWidth(120)
 
-        # Adding widgets to layout
+        # Adding input widgets to horizontal layout
         layout.addWidget(chain)
         layout.addWidget(protocol)
         layout.addWidget(source)
@@ -67,11 +75,9 @@ class PopupWindow(QDialog):
         layout.addWidget(state)
         layout.addWidget(self.error)
 
+        # Add input widget and button to vertical layout
         layout2.addLayout(layout)
         layout2.addWidget(button, alignment=Qt.AlignmentFlag.AlignCenter)
-        # Connecting buttons to functions
-        # button2.clicked.connect(self.show_error)
-        button.clicked.connect(self.close)
 
         self.setLayout(layout2)
 
