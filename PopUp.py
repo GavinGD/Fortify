@@ -1,5 +1,6 @@
 from PyQt6.QtGui import QIntValidator
-from PyQt6.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QLineEdit
+from PyQt6.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QLineEdit, \
+    QAbstractItemView, QMessageBox
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtCore import Qt, QRegularExpression
 import re
@@ -46,17 +47,14 @@ class PopupWindow(QDialog):
         # chain dropdown
         self.chain = QComboBox()
         self.chain.setPlaceholderText("chain")
-        self.chain.addItem("INPUT")
-        self.chain.addItem("OUTPUT")
-        self.chain.addItem("FORWARD")
+        self.chain.addItems(["INPUT", "OUTPUT", "FORWARD"])
+        self.chain.setValidator(QIntValidator(0, self.chain.count() - 1, self))
         self.chain.setFixedWidth(100)
 
         # protocol dropdown
         self.protocol = QComboBox()
         self.protocol.setPlaceholderText("protocol")
-        self.protocol.addItem("tcp")
-        self.protocol.addItem("udp")
-        self.protocol.addItem("icmp")
+        self.protocol.addItems(["tcp", "udp", "icmp"])
         self.protocol.setFixedWidth(100)
 
         # source ip field
@@ -86,18 +84,13 @@ class PopupWindow(QDialog):
         # state dropdown
         self.state = QComboBox()
         self.state.setPlaceholderText("state")
-        self.state.addItem("ESTABLISHED")
-        self.state.addItem("RELATED")
-        self.state.addItem("NEW")
-        self.state.addItem("INVALID")
+        self.state.addItems(["ESTABLISHED", "RELATED", "NEW", "INVALID"])
         self.state.setFixedWidth(140)
 
         # target column
         self.target = QComboBox()
         self.target.setPlaceholderText("target")
-        self.target.addItem("ACCEPT")
-        self.target.addItem("DROP")
-        self.target.addItem("REJECT")
+        self.target.addItems(["ACCEPT", "DROP", "REJECT"])
         self.target.setFixedWidth(100)
 
         # submit button
@@ -138,7 +131,10 @@ class PopupWindow(QDialog):
 
     def get_value(self):
         val_chain = self.chain.currentText()
-        self.dictionary["-A"] = val_chain
+        if len(val_chain) == 0:
+            QMessageBox.warning(self, "Warning", "One of the chain must be selected")
+        else:
+            self.dictionary["-A"] = val_chain
 
         val_protocol = self.protocol.currentText()
         if len(val_protocol) == 0:
@@ -166,10 +162,27 @@ class PopupWindow(QDialog):
         self.dictionary["--dport"] = val_dPort
 
         val_state = self.state.currentText()
-        self.dictionary["--state"] = val_state
+        if len(val_state) == 0:
+            QMessageBox.warning(self, "Warning", "One of the state must be selected")
+        else:
+            self.dictionary["--state"] = val_state
 
         val_target = self.target.currentText()
-        self.dictionary["-j"] = val_target
+        if len(val_target) == 0:
+            QMessageBox.warning(self, "Warning", "One of the target must be selected")
+        else:
+            self.dictionary["-j"] = val_target
 
-        print(self.dictionary)
+        self.print_dictionary()
 
+    def print_dictionary(self):
+        if self.dictionary["-A"] is not None:
+            if self.dictionary["--state"] is not None:
+                if self.dictionary["-j"] is not None:
+                    print(self.dictionary)
+                else:
+                    print("target is none")
+            else:
+                print("state is none")
+        else:
+            print("chain is none")
