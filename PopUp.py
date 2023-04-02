@@ -1,10 +1,11 @@
+import ipaddress
 from PyQt6.QtGui import QIntValidator
-from PyQt6.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QLineEdit, \
-    QAbstractItemView, QMessageBox
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
+    QComboBox, QLineEdit, QMessageBox
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtCore import Qt, QRegularExpression
-import re
-import ipaddress
+import subprocess
+
 
 # Can change the filename/class name to something that shows this is adding a rule
 class PopupWindow(QDialog):
@@ -16,15 +17,14 @@ class PopupWindow(QDialog):
         # Should probably make all layouts, labels widgets class variables
         # i.e. self.submitBtn = QPushButton
         # Makes it so other classes can modify the widgets
-
         self.dictionary = {"-A": None,
-                      "-p": None,
-                      "-s": None,
-                      "-d": None,
-                      "--sport": None,
-                      "--dport": None,
-                      "--state": None,
-                      "-j": None}
+                           "-p": None,
+                           "-s": None,
+                           "-d": None,
+                           "--sport": None,
+                           "--dport": None,
+                           "-m state --state": None,
+                           "-j": None}
 
         # Creating layout and labels (Horizontal and Vertical)
         layout = QHBoxLayout()
@@ -35,12 +35,10 @@ class PopupWindow(QDialog):
         port_validator = QRegularExpressionValidator(self)
         port_validator.setRegularExpression(QRegularExpression(port_reg))
 
-
         # ip validator
         ip_reg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
         ip_validator = QRegularExpressionValidator(self)
         ip_validator.setRegularExpression(QRegularExpression(ip_reg))
-
 
         self.error = QLabel("")
 
@@ -98,7 +96,6 @@ class PopupWindow(QDialog):
         self.submit.setFixedWidth(120)
         self.submit.clicked.connect(self.get_value)
 
-
         # Adding input widgets to horizontal layout
         layout.addWidget(self.chain)
         layout.addWidget(self.protocol)
@@ -109,7 +106,6 @@ class PopupWindow(QDialog):
         layout.addWidget(self.state)
         layout.addWidget(self.target)
         layout.addWidget(self.error)
-
 
         # Add input widget and button to vertical layout
         layout2.addLayout(layout)
@@ -136,53 +132,83 @@ class PopupWindow(QDialog):
         else:
             self.dictionary["-A"] = val_chain
 
-        val_protocol = self.protocol.currentText()
-        if len(val_protocol) == 0:
-            val_protocol = None
+        # Protocol
+        val_protocol = self.protocol.currentText().strip()
         self.dictionary["-p"] = val_protocol
 
-        val_source = self.source.text()
-        if len(val_source) == 0:
-            val_source = None
-        self.dictionary["-s"] = val_source
+        # Source IP
+        try:
+            src_ip = self.source.text()
+            if len(src_ip) == 0:
+                self.dictionary["-s"] = None
+            else:
+                source_ip = ipaddress.ip_address(src_ip)
+                self.dictionary["-s"] = source_ip
+        except ValueError:
+            self.dictionary["-s"] = "ERROR"
+            QMessageBox.warning(self, "Warning", "Invalid Source IP Address!")
 
-        val_dest = self.dest.text()
-        if len(val_dest) == 0:
-            val_dest = None
-        self.dictionary["-d"] = val_dest
+        # Destination IP
+        try:
+            dest_ip = self.dest.text()
+            if len(dest_ip) == 0:
+                self.dictionary["-d"] = None
+            else:
+                dest_ip = ipaddress.ip_address(dest_ip)
+                self.dictionary["-d"] = dest_ip
+        except ValueError:
+            self.dictionary["-d"] = "ERROR"
+            QMessageBox.warning(self, "Warning", "Invalid Destination IP Address!")
 
+        # Source Port
         val_sPort = self.sPort.text()
-        if len(val_sPort) == 0:
+        if len(val_sPort) == 0 or val_protocol == "icmp":
             val_sPort = None
         self.dictionary["--sport"] = val_sPort
 
+        # Destination Port
         val_dPort = self.dPort.text()
-        if len(val_dPort) == 0:
+        if len(val_dPort) == 0 or val_protocol == "icmp":
             val_dPort = None
         self.dictionary["--dport"] = val_dPort
 
+        # State
         val_state = self.state.currentText()
         if len(val_state) == 0:
             QMessageBox.warning(self, "Warning", "One of the state must be selected")
         else:
-            self.dictionary["--state"] = val_state
+            self.dictionary["-m state --state"] = val_state
 
+        # Target
         val_target = self.target.currentText()
         if len(val_target) == 0:
             QMessageBox.warning(self, "Warning", "One of the target must be selected")
         else:
             self.dictionary["-j"] = val_target
 
-        self.print_dictionary()
+        self.submit_rule()
 
-    def print_dictionary(self):
-        if self.dictionary["-A"] is not None:
-            if self.dictionary["--state"] is not None:
-                if self.dictionary["-j"] is not None:
-                    print(self.dictionary)
-                else:
-                    print("target is none")
-            else:
-                print("state is none")
-        else:
-            print("chain is none")
+    def submit_rule(self):
+        rule = "iptables "
+
+        if (self.dictionary["-A"] and self.dictionary["-m state --state"] and self.dictionary["-j"]) is not None \
+                and (self.dictionary["-d"] and self.dictionary["-s"]) is not "ERROR":
+
+            for flag, val in self.dictionary.items():
+                if val is not None:
+                    rule += f"{flag} {val} "
+
+            print(rule)
+            self.__execute_command(rule.strip())
+            self.close()
+
+    def __execute_command(self, rule: str):
+        # Run the command using subprocess
+        process = subprocess.Popen(rule, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        # Wait for the command to complete and capture the output
+        stdout, stderr = process.communicate()
+
+        # Print the output
+        print("STDOUT:", stdout)
+        print("STDERR:", stderr)
