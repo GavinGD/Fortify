@@ -1,8 +1,9 @@
 import sys, qdarktheme
 from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QMainWindow, QHeaderView
-from fortifyUI import Ui_MainWindow
+from fortifyUi import Ui_MainWindow
 from API import *
+from PopUp import PopupWindow
 
 
 class FortifyLogic(QMainWindow, Ui_MainWindow):
@@ -19,6 +20,18 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         # Connect the Dark and Light mode buttons to set_theme
         self.actionDark_Mode.triggered.connect(lambda: self.set_theme(self.actionDark_Mode.text()))
         self.actionLight_Mode.triggered.connect(lambda: self.set_theme(self.actionLight_Mode.text()))
+
+        # Example connecting a button
+        # Connects the Add Rule button to self.popup
+        self.addRuleBtn.clicked.connect(self.popup)
+
+    def popup(self):
+        """
+        Example created the popup window from the class created and showing it.
+        :return:
+        """
+        popup = PopupWindow(self)
+        popup.exec()
 
     def set_chain_policies(self):
         """

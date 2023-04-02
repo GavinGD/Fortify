@@ -92,7 +92,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="inputAddBtn">
+           <widget class="QPushButton" name="addRuleBtn">
             <property name="text">
              <string>Add Rule</string>
             </property>
@@ -181,13 +181,6 @@
             </property>
            </spacer>
           </item>
-          <item>
-           <widget class="QPushButton" name="forwardAddBtn">
-            <property name="text">
-             <string>Add Rule</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>
@@ -264,13 +257,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="outputAddBtn">
-            <property name="text">
-             <string>Add Rule</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </item>
