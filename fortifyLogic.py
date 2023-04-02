@@ -27,7 +27,7 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
 
     def popup(self):
         """
-        Example created the popup window from the class created and showing it.
+        Example creating the popup window from the class created and showing it.
         :return:
         """
         popup = PopupWindow(self)
