@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtCore import Qt, QRegularExpression
 import subprocess
+import API
 
 
 # Can change the filename/class name to something that shows this is adding a rule

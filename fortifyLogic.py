@@ -32,6 +32,7 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         """
         popup = PopupWindow(self)
         popup.exec()
+        self.load_rules()
 
     def set_chain_policies(self):
         """
