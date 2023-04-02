@@ -141,18 +141,28 @@ class PopupWindow(QDialog):
         self.dictionary["-A"] = val_chain
 
         val_protocol = self.protocol.currentText()
+        if len(val_protocol) == 0:
+            val_protocol = None
         self.dictionary["-p"] = val_protocol
 
         val_source = self.source.text()
+        if len(val_source) == 0:
+            val_source = None
         self.dictionary["-s"] = val_source
 
         val_dest = self.dest.text()
+        if len(val_dest) == 0:
+            val_dest = None
         self.dictionary["-d"] = val_dest
 
         val_sPort = self.sPort.text()
+        if len(val_sPort) == 0:
+            val_sPort = None
         self.dictionary["--sport"] = val_sPort
 
         val_dPort = self.dPort.text()
+        if len(val_dPort) == 0:
+            val_dPort = None
         self.dictionary["--dport"] = val_dPort
 
         val_state = self.state.currentText()
