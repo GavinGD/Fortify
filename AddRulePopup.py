@@ -1,16 +1,13 @@
 import ipaddress
-
 import PyQt6
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QComboBox, QLineEdit, QMessageBox, QWidget
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtCore import Qt, QRegularExpression
-import subprocess
-import API
+from API import ui_add_rule
 
 
-# Can change the filename/class name to something that shows this is adding a rule
 class AddRulePopup(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
@@ -67,6 +64,7 @@ class AddRulePopup(QDialog):
         self.dest.setPlaceholderText("dst IP")
         self.dest.setFixedWidth(120)
         self.dest.setValidator(ip_validator)
+
         # source port field
         self.sPort = QLineEdit()
         self.sPort.setObjectName('--sport')
@@ -98,7 +96,7 @@ class AddRulePopup(QDialog):
         # submit button
         self.submit = QPushButton("submit")
         self.submit.setFixedWidth(120)
-        self.submit.clicked.connect(self.get_value)
+        self.submit.clicked.connect(self.submit_rule)
 
         # Adding input widgets to horizontal layout
         self.layout.addWidget(self.chain)
@@ -109,23 +107,34 @@ class AddRulePopup(QDialog):
         self.layout.addWidget(self.dPort)
         self.layout.addWidget(self.state)
         self.layout.addWidget(self.target)
+
         # Add input widget and button to vertical layout
         self.layout2.addLayout(self.layout)
         self.layout2.addWidget(self.submit, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.setLayout(self.layout2)
 
-    def get_value(self):
+    def submit_rule(self):
+        """
+        Submits the rule and adds it to iptables.
+        """
 
         combo_box_widgets = self.findChildren(QComboBox)
 
-        if self.check_combo_value(combo_box_widgets):
-            input_widgets = self.findChildren((QComboBox, QLineEdit))
-            self.create_rule(input_widgets)
-            print(self.rule)
-        # self.submit_rule()
+        if self.check_valid_ips([self.source, self.dest]):
+
+            if self.check_combo_value(combo_box_widgets):
+                input_widgets = self.findChildren((QComboBox, QLineEdit))
+                self.create_rule(input_widgets)
+                ui_add_rule(self.rule)
+                self.close()
 
     def check_combo_value(self, combo_boxes):
+        """
+        Checks the combo boxes for valid inputs. If invalid, displays an error box.
+        :param combo_boxes: children widgets of the window
+        :return: False if invalid, True if ALL valid
+        """
 
         for combo in combo_boxes:
             if combo.placeholderText() != 'protocol':
@@ -135,7 +144,37 @@ class AddRulePopup(QDialog):
 
         return True
 
+    def check_valid_ips(self, ip_widgets):
+        """
+        Checks for valid IPs. If the text is not empty, check for valid IP.
+        :param ip_widgets: ip widgets to validate
+        :return: False if invalid, True if valid
+        """
+
+        for widget in ip_widgets:
+            ip = widget.text()
+
+            if ip == '':
+                continue
+
+            try:
+                ipaddress.ip_address(ip)
+            except ValueError:
+                error = ''
+                if widget.objectName() == '-s':
+                    error = 'Source IP'
+                else:
+                    error = 'Destination IP'
+                QMessageBox.warning(self, "Warning", f"Invalid {error} Address!")
+                return False
+
+        return True
+
     def create_rule(self, input_widgets):
+        """
+        Updated the values in the rule dictionary.
+        :param input_widgets: children widgets of the window
+        """
 
         for widget in input_widgets:
             key = str(widget.objectName())
@@ -147,29 +186,3 @@ class AddRulePopup(QDialog):
             elif type(widget) == PyQt6.QtWidgets.QLineEdit:
                 if widget.text() != '':
                     self.rule[key] = widget.text()
-
-
-    def submit_rule(self):
-        rule = "iptables "
-
-        if (self.rule["-A"] and self.rule["-m state --state"] and self.rule["-j"]) is not None \
-                and (self.rule["-d"] and self.rule["-s"]) is not "ERROR":
-
-            for flag, val in self.rule.items():
-                if val is not None:
-                    rule += f"{flag} {val} "
-
-            print(rule)
-            self.__execute_command(rule.strip())
-            self.close()
-
-    def __execute_command(self, rule: str):
-        # Run the command using subprocess
-        process = subprocess.Popen(rule, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        # Wait for the command to complete and capture the output
-        stdout, stderr = process.communicate()
-
-        # Print the output
-        print("STDOUT:", stdout)
-        print("STDERR:", stderr)
