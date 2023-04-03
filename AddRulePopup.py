@@ -172,7 +172,7 @@ class AddRulePopup(QDialog):
 
     def create_rule(self, input_widgets):
         """
-        Updated the values in the rule dictionary.
+        Updates the values in the rule dictionary.
         :param input_widgets: children widgets of the window
         """
 
