@@ -3,7 +3,7 @@ from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QMainWindow, QHeaderView
 from fortifyUi import Ui_MainWindow
 from API import *
-from PopUp import PopupWindow
+from AddRulePopup import AddRulePopup
 
 
 class FortifyLogic(QMainWindow, Ui_MainWindow):
@@ -30,8 +30,9 @@ class FortifyLogic(QMainWindow, Ui_MainWindow):
         Example creating the popup window from the class created and showing it.
         :return:
         """
-        popup = PopupWindow(self)
+        popup = AddRulePopup(self)
         popup.exec()
+        self.load_rules()
 
     def set_chain_policies(self):
         """

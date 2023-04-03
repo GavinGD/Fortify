@@ -28,7 +28,6 @@ def ui_chain_rules(chain):
     chain_rules = __get_chain_rules(chain)
 
     for rule in chain_rules:
-
         rule_dict = {}
         __extract_rule_field(rule, rule_dict, 'protocol', r'-p\b')
         __extract_rule_field(rule, rule_dict, 'source', r'-s\b')
@@ -40,6 +39,20 @@ def ui_chain_rules(chain):
         ui_rules.append(rule_dict)
 
     return ui_rules
+
+
+def ui_add_rule(rule):
+    """
+    Adds a rule provided from user to iptables.
+    :param rule: dictionary representing rule
+    """
+    add_rule = f'iptables '
+
+    for flag, val in rule.items():
+        if val is not None:
+            add_rule += f'{flag} {val} '
+
+    __run_command(add_rule)
 
 
 def __get_chain_rules(chain):
